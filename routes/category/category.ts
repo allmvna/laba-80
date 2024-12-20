@@ -29,29 +29,41 @@ categoryRoutes.get('/:id', async (req, res) => {
 
 
 categoryRoutes.post('/', async (req, res) => {
-    try {
-        const newCategory: Category = req.body;
-        const addedCategory = await categoriesFileDb.addCategory(newCategory);
-        res.status(201).json(addedCategory);
-    } catch (error) {
-        res.status(500).json({ message: 'Error adding category' });
+    const { name } = req.body;
+
+    if (!name) {
+        res.status(400).json({ message: 'Missing required field: name' });
+    } else {
+        try {
+            const newCategory: Category = req.body;
+            const addedCategory = await categoriesFileDb.addCategory(newCategory);
+            res.status(201).json(addedCategory);
+        } catch (error) {
+            res.status(500).json({ message: 'Error adding category' });
+        }
     }
 });
 
 
 categoryRoutes.put('/:id', async (req, res) => {
-    try {
-        const updatedCategory: Category = req.body;
-        await categoriesFileDb.updateCategory(parseInt(req.params.id), updatedCategory);
-        const categories = await categoriesFileDb.readCategories();
-        const updated = categories.find((cat: Category) => cat.id === parseInt(req.params.id));
-        if (updated) {
-            res.json(updated);
-        } else {
-            res.status(404).json({ message: 'Category not found' });
+    const { name } = req.body;
+
+    if (!name) {
+        res.status(400).json({ message: 'Missing required field: name' });
+    } else {
+        try {
+            const updatedCategory: Category = req.body;
+            await categoriesFileDb.updateCategory(parseInt(req.params.id), updatedCategory);
+            const categories = await categoriesFileDb.readCategories();
+            const updated = categories.find((cat: Category) => cat.id === parseInt(req.params.id));
+            if (updated) {
+                res.json(updated);
+            } else {
+                res.status(404).json({ message: 'Category not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Error updating category' });
         }
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating category' });
     }
 });
 
