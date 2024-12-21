@@ -1,13 +1,18 @@
 import express from 'express';
 import { Place } from "../../types";
 import placeFileDb from "../../filesDb/placeFileDb";
+import itemFileDb from "../../filesDb/itemFileDb";
 
 const placeRoutes = express.Router();
 
 placeRoutes.get('/', async (req, res) => {
     try {
         const places = await placeFileDb.readPlaces();
-        res.json(places);
+        const response = places.map((place) => ({
+            id: place.id,
+            name: place.name,
+        }));
+        res.json(response);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving places' });
     }
@@ -61,13 +66,25 @@ placeRoutes.put('/:id', async (req, res) => {
     }
 });
 
+
 placeRoutes.delete('/:id', async (req, res) => {
+    const { id } = req.params;
     try {
-        await placeFileDb.deletePlace(parseInt(req.params.id));
-        res.status(200).json({ message: 'Place deleted' });
+        const items = await itemFileDb.readItems();
+        const dependentItems = items.filter((item) => item.placeId === parseInt(id));
+
+        if (dependentItems.length > 0) {
+            res.status(400).json({
+                message: 'Cannot delete place: There are items associated with this place',
+            });
+        } else {
+            await placeFileDb.deletePlace(parseInt(id));
+            res.status(200).json({ message: 'Place deleted' });
+        }
     } catch (error) {
         res.status(500).json({ message: 'Error deleting place' });
     }
 });
+
 
 export default placeRoutes;

@@ -9,7 +9,16 @@ itemRoutes.get('/', async (req,  res) => {
     try {
         const items: Item[]  = await itemFileDb.readItems();
 
-        const itemsResponse = items.map((item) => ({ id: item.id, name: item.name }));
+        const itemsResponse = items.map(item => {
+            const idFields = Object.entries(item)
+                .filter(([key, value]) => key.toLowerCase().includes('id') && value !== undefined)
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+
+            return {
+                ...idFields,
+                name: item.name,
+            };
+        });
         res.status(200).json(itemsResponse);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving items' });
@@ -56,9 +65,9 @@ itemRoutes.post('/',imagesUpload.single('photo'), async (req, res) => {
 
 itemRoutes.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { categoryId, placeId, name, description, photo, dateAdded } = req.body;
+    const { categoryId, placeId, name, description, photo } = req.body;
 
-    if (!categoryId || !placeId || !name || !dateAdded) {
+    if (!categoryId || !placeId || !name ) {
         res.status(400).json({ message: 'Error updating item: Missing required fields' });
     }
 
@@ -69,7 +78,6 @@ itemRoutes.put('/:id', async (req, res) => {
             name,
             description,
             photo,
-            dateAdded,
         });
 
         if (!updatedItem) {
