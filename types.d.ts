@@ -9,3 +9,13 @@ export interface Place {
     name: string;
     description?: string;
 }
+
+export interface Item {
+    id: number;
+    categoryId: number;
+    placeId: number;
+    name: string;
+    description?: string;
+    photo?: string;
+    dateAdded: string;
+}
